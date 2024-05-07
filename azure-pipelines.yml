@@ -1,0 +1,44 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- none
+
+jobs:
+- job: BuildAndCompare
+  displayName: 'Build and Compare Job'
+  pool:
+    vmImage: 'windows-latest'  # Use a Windows agent pool
+
+  steps:
+  - checkout: self
+    fetchDepth: 2  
+
+  - task: PowerShell@2
+    inputs:
+      targetType: 'inline'
+      script: |
+        Set-Location -Path $(Build.SourcesDirectory)
+        $changes = git diff --name-only HEAD^ HEAD
+        $jsonOutput = @()
+        foreach ($change in $changes) {
+            $filename = $change
+            $oldContent = (git show HEAD^:$filename)
+            $newContent = (git show HEAD:$filename)
+            $changeObject = @{
+                filename = $filename
+                oldContent = $oldContent
+                newContent = $newContent
+            }
+            $jsonOutput += $changeObject
+            }
+        $jsonOutput | ConvertTo-Json | Set-Content -Path "$(Build.ArtifactStagingDirectory)/changes.json"
+    displayName: 'Compare Previous Commit with Current Commit and Generate JSON'
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: '$(Build.ArtifactStagingDirectory)/changes.json'
+      artifact: 'changes.Json'
+    displayName: 'Publish JSON Artifact'
+
