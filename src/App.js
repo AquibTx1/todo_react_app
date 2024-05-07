@@ -28,11 +28,11 @@ export default function App() {
 	const preferredColorScheme = useColorScheme();
 	const [colorScheme, setColorScheme] = useLocalStorage({
 		key: 'mantine-color-scheme',
-		defaultValue: 'light',
+		defaultValue: 'dark',
 		getInitialValueInEffect: true,
 	});
 	const toggleColorScheme = value =>
-		setColorScheme(value || (colorScheme === 'dark' ? 'light' : 'dark'));
+		setColorScheme(value || (colorScheme === 'dark' ? 'dark' : 'light'));
 
 	useHotkeys([['mod+J', () => toggleColorScheme()]]);
 
